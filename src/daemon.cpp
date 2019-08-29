@@ -286,8 +286,6 @@ void processingThread(void* arg)
       cJSON_AddStringToObject(root,	"uuid",		uuid.c_str());
       cJSON_AddNumberToObject(root,	"camera_id",	tdata->camera_id);
       cJSON_AddStringToObject(root, 	"site_id", 	tdata->site_id.c_str());
-      cJSON_AddNumberToObject(root,	"img_width",	frame.cols);
-      cJSON_AddNumberToObject(root,	"img_height",	frame.rows);
 
       // Add the company ID to the output if configured
       if (tdata->company_id.length() > 0)
