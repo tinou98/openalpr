@@ -274,7 +274,9 @@ void processingThread(void* arg)
       regionsOfInterest.push_back(AlprRegionOfInterest(0,0, frame.cols, frame.rows));
     }
 
-    AlprResults results = alpr.recognize(frame.data, frame.elemSize(), frame.cols, frame.rows, regionsOfInterest);
+    AlprResults results;
+    if (regionsOfInterest.size()>0)
+      results = alpr->recognize(frame.data, frame.elemSize(), frame.cols, frame.rows, regionsOfInterest);
 
     timespec endTime;
     getTimeMonotonic(&endTime);
