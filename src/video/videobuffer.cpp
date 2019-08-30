@@ -195,7 +195,6 @@ void getALPRImages(cv::VideoCapture cap, VideoDispatcher* dispatcher)
         std::chrono::duration<double, std::milli> ellapsed = now - lastFrame;
         if(dispatcher->fps <= 0 || ellapsed.count() > 1000./dispatcher->fps) {
           lastFrame = now;
-          dispatcher->log_info("Captured frame :)");
           dispatcher->mMutex.lock();
           dispatcher->setLatestFrame(frame);
           dispatcher->mMutex.unlock();
