@@ -1,0 +1,8 @@
+[Unit]
+Description=Automatic License Plate Recognition library
+
+[Service]
+ExecStart=/usr/bin/alprd -f
+
+[Install]
+WantedBy=multi-user.target

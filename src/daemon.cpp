@@ -61,7 +61,7 @@ struct CaptureThreadData
   bool output_images;
   std::string output_image_folder;
   int top_n;
-  int fps;
+  float fps;
 };
 
 struct UploadThreadData
@@ -276,7 +276,7 @@ void processingThread(void* arg)
 
     AlprResults results;
     if (regionsOfInterest.size()>0)
-      results = alpr->recognize(frame.data, frame.elemSize(), frame.cols, frame.rows, regionsOfInterest);
+      results = alpr.recognize(frame.data, frame.elemSize(), frame.cols, frame.rows, regionsOfInterest);
 
     timespec endTime;
     getTimeMonotonic(&endTime);

@@ -39,12 +39,12 @@ VideoBuffer::~VideoBuffer()
   }
 }
 
-VideoDispatcher* VideoBuffer::createDispatcher(std::string mjpeg_url, int fps)
+VideoDispatcher* VideoBuffer::createDispatcher(std::string mjpeg_url, float fps)
 {
   return new VideoDispatcher(mjpeg_url, fps);
 }
 
-void VideoBuffer::connect(std::string mjpeg_url, int fps)
+void VideoBuffer::connect(std::string mjpeg_url, float fps)
 {
   
     if (startsWith(mjpeg_url, "http") && hasEnding(mjpeg_url, ".mjpg") == false)
@@ -56,13 +56,13 @@ void VideoBuffer::connect(std::string mjpeg_url, int fps)
       std::size_t found = mjpeg_url.find("?");
       if (found!=std::string::npos)
       {
-	// URL already contains a "?"
-	mjpeg_url = mjpeg_url + "&openalprfiletype=file.mjpg";
+        // URL already contains a "?"
+        mjpeg_url = mjpeg_url + "&openalprfiletype=file.mjpg";
       }
       else
       {
-	// URL does not contain a "?"
-	mjpeg_url = mjpeg_url + "?openalprfiletype=file.mjpg";
+        // URL does not contain a "?"
+        mjpeg_url = mjpeg_url + "?openalprfiletype=file.mjpg";
       }
 
     }
@@ -129,14 +129,16 @@ void imageCollectionThread(void* arg)
       
       if (cap.isOpened())
       {
-        dispatcher->log_info("Video stream connected");
+        std::stringstream ss;
+        ss << "Video stream connected. Grabbing image @" << dispatcher->fps << "fps";
+        dispatcher->log_info(ss.str());
         getALPRImages(cap, dispatcher);
       }
       else
       {
-	std::stringstream ss;
-	ss << "Stream " << dispatcher->mjpeg_url << " failed to open.";
-	dispatcher->log_error(ss.str());
+        std::stringstream ss;
+        ss << "Stream " << dispatcher->mjpeg_url << " failed to open.";
+        dispatcher->log_error(ss.str());
       }
 
     }
@@ -169,55 +171,54 @@ void imageCollectionThread(void* arg)
 void getALPRImages(cv::VideoCapture cap, VideoDispatcher* dispatcher)
 {
   using clock = std::chrono::steady_clock;
+  auto lastFrame = clock::now();
   while (dispatcher->active)
   {
     while (dispatcher->active)
     {
       
-      auto begin = clock::now();
       bool hasImage = false;
       try
       {
         cv::Mat frame;
-	hasImage = cap.read(frame);
-		  // Double check the image to make sure it's valid.
-	if (!frame.data || frame.empty())
-	{
-	  std::stringstream ss;
-	  ss << "Stream " << dispatcher->mjpeg_url << " received invalid frame";
-	  dispatcher->log_error(ss.str());
-	  return;
-	}
-	
-	dispatcher->mMutex.lock();
-	dispatcher->setLatestFrame(frame);
-	dispatcher->mMutex.unlock();
+        hasImage = cap.read(frame);
+                  // Double check the image to make sure it's valid.
+        if (!frame.data || frame.empty())
+        {
+          std::stringstream ss;
+          ss << "Stream " << dispatcher->mjpeg_url << " received invalid frame";
+          dispatcher->log_error(ss.str());
+          return;
+        }
+        
+        auto now = clock::now();
+        std::chrono::duration<double, std::milli> ellapsed = now - lastFrame;
+        if(dispatcher->fps <= 0 || ellapsed.count() > 1000./dispatcher->fps) {
+          lastFrame = now;
+          dispatcher->log_info("Captured frame :)");
+          dispatcher->mMutex.lock();
+          dispatcher->setLatestFrame(frame);
+          dispatcher->mMutex.unlock();
+        }
       }
       catch (const std::runtime_error& error)
       {
-	// Error occured while trying to gather image.  Retry, don't exit.
-	std::stringstream ss;
-	ss << "Exception happened " <<  error.what();
-	dispatcher->log_error(ss.str());
-	dispatcher->mMutex.unlock();
-	return;
+        // Error occured while trying to gather image.  Retry, don't exit.
+        std::stringstream ss;
+        ss << "Exception happened " <<  error.what();
+        dispatcher->log_error(ss.str());
+        dispatcher->mMutex.unlock();
+        return;
       }
 
       
       dispatcher->mMutex.unlock();
       
       if (hasImage == false)
-	break;
+        break;
       
-
-      if(dispatcher->fps > 0) {
-        auto now = clock::now();
-	std::chrono::duration<double, std::milli> ellapsed = now - begin;
-        sleep_ms(1000/dispatcher->fps - ellapsed.count());
-      } else {
-        // Delay 15ms
-        sleep_ms(15);
-      }
+      // Delay 15ms
+      sleep_ms(15);
     }
     
     // Delay 100ms

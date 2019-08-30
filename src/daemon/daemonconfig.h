@@ -25,7 +25,7 @@ public:
   std::string company_id;
   std::string site_id;
   std::string pattern;
-  int fps;
+  float fps;
   
 private:
 

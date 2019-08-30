@@ -30,3 +30,8 @@ store_plates_location = /var/lib/openalpr/plateimages/
 upload_data = 0
 upload_address = http://localhost:9000/push/
 
+; Enable motion detection
+motion_detection = 0;
+
+; FPS for capturing frame
+frames_per_second = -1;

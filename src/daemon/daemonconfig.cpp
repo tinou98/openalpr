@@ -56,7 +56,7 @@ DaemonConfig::DaemonConfig(std::string config_file, std::string config_defaults_
   company_id = getString(&ini, &defaultIni, "daemon", "company_id", "");
   site_id = getString(&ini, &defaultIni, "daemon", "site_id", "");
   pattern = getString(&ini, &defaultIni, "daemon", "pattern", "");
-  fps = getInt(&ini, &defaultIni, "daemon", "frames_per_second", -1);
+  fps = getFloat(&ini, &defaultIni, "daemon", "frames_per_second", -1);
 }
 
 DaemonConfig::~DaemonConfig() {

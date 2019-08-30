@@ -18,7 +18,7 @@
 class VideoDispatcher
 {
   public:
-    VideoDispatcher(std::string mjpeg_url, int fps)
+    VideoDispatcher(std::string mjpeg_url, float fps)
     {
       this->active = true;
       this->latestFrameNumber = -1;
@@ -80,7 +80,7 @@ class VideoDispatcher
     int lastFrameRead;
     
     std::string mjpeg_url;
-    int fps;
+    float fps;
     tthread::mutex mMutex;
     
   private:
@@ -95,7 +95,7 @@ class VideoBuffer
     VideoBuffer();
     virtual ~VideoBuffer();
 
-    void connect(std::string mjpeg_url, int fps);
+    void connect(std::string mjpeg_url, float fps);
     
 
     // If a new frame is available, the function sets "frame" to it and returns the frame number
@@ -107,7 +107,7 @@ class VideoBuffer
     
   protected:
   
-    virtual VideoDispatcher* createDispatcher(std::string mjpeg_url, int fps);
+    virtual VideoDispatcher* createDispatcher(std::string mjpeg_url, float fps);
     
   private:
     
