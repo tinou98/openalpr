@@ -51,10 +51,12 @@ DaemonConfig::DaemonConfig(std::string config_file, std::string config_defaults_
   storePlates = getBoolean(&ini, &defaultIni, "daemon", "store_plates", false);
   imageFolder = getString(&ini, &defaultIni, "daemon", "store_plates_location", "/tmp/");
   uploadData = getBoolean(&ini, &defaultIni, "daemon", "upload_data", false);
+  do_motiondetection = getBoolean(&ini, &defaultIni, "daemon", "motion_detection", false);
   upload_url = getString(&ini, &defaultIni, "daemon", "upload_address", "");
   company_id = getString(&ini, &defaultIni, "daemon", "company_id", "");
   site_id = getString(&ini, &defaultIni, "daemon", "site_id", "");
   pattern = getString(&ini, &defaultIni, "daemon", "pattern", "");
+  fps = getInt(&ini, &defaultIni, "daemon", "frames_per_second", -1);
 }
 
 DaemonConfig::~DaemonConfig() {

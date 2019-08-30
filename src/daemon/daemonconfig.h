@@ -20,10 +20,12 @@ public:
   bool storePlates;
   std::string imageFolder;
   bool uploadData;
+  bool do_motiondetection;
   std::string upload_url;
   std::string company_id;
   std::string site_id;
   std::string pattern;
+  int fps;
   
 private:
 

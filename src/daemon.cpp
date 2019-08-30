@@ -11,6 +11,7 @@
 
 #include "tclap/CmdLine.h"
 #include "alpr.h"
+#include "openalpr/motiondetector.h"
 #include "openalpr/cjson.h"
 #include "support/tinythread.h"
 #include <curl/curl.h>
@@ -52,6 +53,7 @@ struct CaptureThreadData
   int analysis_threads;
   
   bool clock_on;
+  bool do_motiondetection;
   
   std::string config_file;
   std::string country_code;
@@ -59,6 +61,7 @@ struct CaptureThreadData
   bool output_images;
   std::string output_image_folder;
   int top_n;
+  int fps;
 };
 
 struct UploadThreadData
@@ -209,6 +212,8 @@ int main( int argc, const char** argv )
       tdata->top_n = daemon_config.topn;
       tdata->pattern = daemon_config.pattern;
       tdata->clock_on = clockOn;
+      tdata->do_motiondetection = daemon_config.do_motiondetection;
+      tdata->fps = daemon_config.fps;
       
       tthread::thread* thread_recognize = new tthread::thread(streamRecognitionThread, (void*) tdata);
       threads.push_back(thread_recognize);
@@ -242,6 +247,8 @@ void processingThread(void* arg)
 {
   CaptureThreadData* tdata = (CaptureThreadData*) arg;
   Alpr alpr(tdata->country_code, tdata->config_file);
+  MotionDetector motiondetector;
+  bool motionInitialized = false;
   alpr.setTopN(tdata->top_n);
   alpr.setDefaultRegion(tdata->pattern);
 
@@ -249,13 +256,23 @@ void processingThread(void* arg)
 
     // Wait for a new frame
     cv::Mat frame = framesQueue.pop();
+    if(!motionInitialized) {
+      motiondetector.ResetMotionDetection(&frame);
+      motionInitialized = true;
+    }
 
     // Process new frame
     timespec startTime;
     getTimeMonotonic(&startTime);
 
     std::vector<AlprRegionOfInterest> regionsOfInterest;
-    regionsOfInterest.push_back(AlprRegionOfInterest(0,0, frame.cols, frame.rows));
+    if(tdata->do_motiondetection) {
+      cv::Rect rectan = motiondetector.MotionDetect(&frame);
+      if(rectan.width > 0)
+        regionsOfInterest.push_back(AlprRegionOfInterest(rectan.x, rectan.y, rectan.width, rectan.height));
+    } else {
+      regionsOfInterest.push_back(AlprRegionOfInterest(0,0, frame.cols, frame.rows));
+    }
 
     AlprResults results = alpr.recognize(frame.data, frame.elemSize(), frame.cols, frame.rows, regionsOfInterest);
 
@@ -332,7 +349,7 @@ void streamRecognitionThread(void* arg)
   
   cv::Mat frame;
   LoggingVideoBuffer videoBuffer(logger);
-  videoBuffer.connect(tdata->stream_url, 5);
+  videoBuffer.connect(tdata->stream_url, tdata->fps);
   LOG4CPLUS_INFO(logger, "Starting camera " << tdata->camera_id);
   
   while (daemon_active)

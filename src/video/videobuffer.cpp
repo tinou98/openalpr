@@ -168,12 +168,13 @@ void imageCollectionThread(void* arg)
 // it returns so that the video capture can be recreated.
 void getALPRImages(cv::VideoCapture cap, VideoDispatcher* dispatcher)
 {
-
+  using clock = std::chrono::steady_clock;
   while (dispatcher->active)
   {
     while (dispatcher->active)
     {
       
+      auto begin = clock::now();
       bool hasImage = false;
       try
       {
@@ -209,8 +210,14 @@ void getALPRImages(cv::VideoCapture cap, VideoDispatcher* dispatcher)
 	break;
       
 
-      // Delay 15ms
-      sleep_ms(15);    
+      if(dispatcher->fps > 0) {
+        auto now = clock::now();
+	std::chrono::duration<double, std::milli> ellapsed = now - begin;
+        sleep_ms(1000/dispatcher->fps - ellapsed.count());
+      } else {
+        // Delay 15ms
+        sleep_ms(15);
+      }
     }
     
     // Delay 100ms
