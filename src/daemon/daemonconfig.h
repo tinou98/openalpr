@@ -26,6 +26,7 @@ public:
   std::string site_id;
   std::string pattern;
   float fps;
+  size_t camera_buffer_size;
   
 private:
 

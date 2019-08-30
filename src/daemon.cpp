@@ -188,6 +188,9 @@ int main( int argc, const char** argv )
   }
   
   LOG4CPLUS_INFO(logger, "Using: " << daemon_config.imageFolder << " for storing valid plate images");
+
+  LOG4CPLUS_INFO(logger, "Using a frame buffer of " << daemon_config.camera_buffer_size << " images");
+  framesQueue.resize(daemon_config.camera_buffer_size);
   
   pid_t pid;
   
@@ -283,7 +286,7 @@ void processingThread(void* arg)
     double totalProcessingTime = diffclock(startTime, endTime);
 
     if (tdata->clock_on) {
-      LOG4CPLUS_INFO(logger, "Camera " << tdata->camera_id << " processed frame in: " << totalProcessingTime << " ms.");
+      LOG4CPLUS_INFO(logger, "Camera " << tdata->camera_id << " processed frame in: " << totalProcessingTime << " ms (back buffer has " << framesQueue.size() << " images).");
     }
 
     if (results.plates.size() > 0) {
@@ -360,9 +363,7 @@ void streamRecognitionThread(void* arg)
     int response = videoBuffer.getLatestFrame(&frame, regionsOfInterest);
     
     if (response != -1) {
-      if (framesQueue.empty()) {
-        framesQueue.push(frame.clone());
-      }
+      framesQueue.push(frame.clone());
     }
     
     usleep(10000);

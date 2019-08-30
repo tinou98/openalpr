@@ -57,6 +57,7 @@ DaemonConfig::DaemonConfig(std::string config_file, std::string config_defaults_
   site_id = getString(&ini, &defaultIni, "daemon", "site_id", "");
   pattern = getString(&ini, &defaultIni, "daemon", "pattern", "");
   fps = getFloat(&ini, &defaultIni, "daemon", "frames_per_second", -1);
+  camera_buffer_size = getInt(&ini, &defaultIni, "daemon", "camera_buffer_size", 5);
 }
 
 DaemonConfig::~DaemonConfig() {
