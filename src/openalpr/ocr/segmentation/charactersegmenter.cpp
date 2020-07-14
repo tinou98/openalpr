@@ -105,7 +105,7 @@ namespace alpr
 //        {
 //          Mat histoCopy(vertHistogram.histoImg.size(), vertHistogram.histoImg.type());
 //          //vertHistogram.copyTo(histoCopy);
-//          cvtColor(vertHistogram.histoImg, histoCopy, COLOR_GRAY2RGB);
+//          cvtColor(vertHistogram.histoImg, histoCopy, CV_GRAY2RGB);
 //
 //          string label = "threshold: " + toString(i);
 //          allHistograms.push_back(addLabel(histoCopy, label));
@@ -669,7 +669,7 @@ namespace alpr
           {
             //vector<Mat> tmpDebug;
             //Mat thresholdCopy2 = Mat::zeros(thresholds[i].size(), CV_8U);
-            //rectangle(thresholdCopy2, charRegions[j], Scalar(255,255,255), FILLED);
+            //rectangle(thresholdCopy2, charRegions[j], Scalar(255,255,255), CV_FILLED);
             //tmpDebug.push_back(addLabel(thresholdCopy2, "box Mask"));
             //bitwise_and(thresholds[i], thresholdCopy2, thresholdCopy2);
             //tmpDebug.push_back(addLabel(thresholdCopy2, "box Mask + Thresh"));
