@@ -18,6 +18,7 @@
 */
 
 #include "videobuffer.h"
+#include "../openalpr/motiondetector.h"
 
 using namespace alpr;
 
@@ -172,6 +173,7 @@ void getALPRImages(cv::VideoCapture cap, VideoDispatcher* dispatcher)
 {
   using clock = std::chrono::steady_clock;
   auto lastFrame = clock::now();
+  MotionDetector motionDetector;
   while (dispatcher->active)
   {
     while (dispatcher->active)
@@ -195,9 +197,13 @@ void getALPRImages(cv::VideoCapture cap, VideoDispatcher* dispatcher)
         std::chrono::duration<double, std::milli> ellapsed = now - lastFrame;
         if(dispatcher->fps <= 0 || ellapsed.count() > 1000./dispatcher->fps) {
           lastFrame = now;
-          dispatcher->mMutex.lock();
-          dispatcher->setLatestFrame(frame);
-          dispatcher->mMutex.unlock();
+          cv::Rect area = motionDetector.MotionDetect(&frame);
+
+          if(!area.empty()) {
+            dispatcher->mMutex.lock();
+            dispatcher->setLatestFrame(frame);
+            dispatcher->mMutex.unlock();
+          }
         }
       }
       catch (const std::runtime_error& error)

@@ -53,7 +53,6 @@ struct CaptureThreadData
   int analysis_threads;
   
   bool clock_on;
-  bool do_motiondetection;
   
   std::string config_file;
   std::string country_code;
@@ -215,7 +214,6 @@ int main( int argc, const char** argv )
       tdata->top_n = daemon_config.topn;
       tdata->pattern = daemon_config.pattern;
       tdata->clock_on = clockOn;
-      tdata->do_motiondetection = daemon_config.do_motiondetection;
       tdata->fps = daemon_config.fps;
       
       tthread::thread* thread_recognize = new tthread::thread(streamRecognitionThread, (void*) tdata);
@@ -269,17 +267,9 @@ void processingThread(void* arg)
     getTimeMonotonic(&startTime);
 
     std::vector<AlprRegionOfInterest> regionsOfInterest;
-    if(tdata->do_motiondetection) {
-      cv::Rect rectan = motiondetector.MotionDetect(&frame);
-      if(rectan.width > 0)
-        regionsOfInterest.push_back(AlprRegionOfInterest(rectan.x, rectan.y, rectan.width, rectan.height));
-    } else {
-      regionsOfInterest.push_back(AlprRegionOfInterest(0,0, frame.cols, frame.rows));
-    }
+    regionsOfInterest.push_back(AlprRegionOfInterest(0,0, frame.cols, frame.rows));
 
-    AlprResults results;
-    if (regionsOfInterest.size()>0)
-      results = alpr.recognize(frame.data, frame.elemSize(), frame.cols, frame.rows, regionsOfInterest);
+    AlprResults results = alpr.recognize(frame.data, frame.elemSize(), frame.cols, frame.rows, regionsOfInterest);
 
     timespec endTime;
     getTimeMonotonic(&endTime);
